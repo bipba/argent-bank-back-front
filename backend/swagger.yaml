@@ -1,0 +1,326 @@
+swagger: '2.0'
+info:
+  title: Bank Argent API documentation
+  description: Contains all available API endpoints in this codebase
+  version: '1.0.0'
+  termsOfService: 'http://swagger.io/terms/'
+host: localhost:3001
+basePath: /api/v1
+schemes:
+  - http
+paths:
+  /user/login:
+    post:
+      tags:
+        - User Module
+      summary: Login
+      description: API for Login
+      parameters:
+        - in: body
+          name: body
+          description: Login Payload
+          required: true
+          schema:
+            $ref: '#/definitions/Login'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Login Successfully
+          schema:
+            $ref: '#/definitions/LoginResponse'
+        '400':
+          description: Invalid Fields
+        '500':
+          description: Internal Server Error
+
+  /user/signup:
+    post:
+      tags:
+        - User Module
+      summary: Signup
+      description: API for Signup
+      parameters:
+        - in: body
+          name: body
+          description: Signup Payload
+          required: true
+          schema:
+            $ref: '#/definitions/User'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Signup Successfully
+          schema:
+            $ref: '#/definitions/ApiResponse'
+        '400':
+          description: Invalid Fields
+        '500':
+          description: Internal Server Error
+
+  /user/profile:
+    post:
+      security:
+        - Bearer: []
+      tags:
+        - User Module
+      summary: User Profile API
+      description: API for fetching a user profile
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          schema:
+            $ref: '#/definitions/ApiResponse'
+        '400':
+          description: Invalid Fields
+        '500':
+          description: Internal Server Error
+    put:
+      security:
+        - Bearer: []
+      tags:
+        - User Module
+      summary: Update User Profile API
+      description: API for updating a user profile
+      parameters:
+        - in: body
+          name: body
+          description: Update user profile attributes
+          required: true
+          schema:
+            $ref: '#/definitions/UserProfile'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: User profile updated successfully
+          schema:
+            $ref: '#/definitions/ApiResponse'
+        '400':
+          description: Invalid Fields
+        '500':
+          description: Internal Server Error
+
+  # Routes for Transactions, Notes, Categories, and Transaction Types
+  /accounts/{accountId}/transactions:
+    get:
+      tags:
+        - Transaction Module
+      summary: Get all transactions for a specific account
+      description: Retrieve a list of transactions for a given account. Optionally filter by month and year.
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          description: The unique identifier of the account
+          type: string
+        - name: month
+          in: query
+          description: Filter transactions by month
+          type: string
+        - name: year
+          in: query
+          description: Filter transactions by year
+          type: string
+      responses:
+        '200':
+          description: A list of transactions
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Transaction'
+        '404':
+          description: Account not found
+
+  /accounts/{accountId}/transactions/{transactionId}:
+    get:
+      tags:
+        - Transaction Module
+      summary: Get details of a specific transaction
+      description: Retrieve the details of a transaction by its unique ID.
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          description: The unique identifier of the account
+          type: string
+        - name: transactionId
+          in: path
+          required: true
+          description: The unique identifier of the transaction
+          type: string
+      responses:
+        '200':
+          description: Transaction details
+          schema:
+            $ref: '#/definitions/Transaction'
+        '404':
+          description: Transaction not found
+
+    patch:
+      tags:
+        - Transaction Module
+      summary: Update note and/or category for a transaction
+      description: Update the note and/or category for a specific transaction using the same API.
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          description: The unique identifier of the account
+          type: string
+        - name: transactionId
+          in: path
+          required: true
+          description: The unique identifier of the transaction
+          type: string
+        - in: body
+          name: body
+          description: Fields to be updated (note and/or category)
+          required: true
+          schema:
+            type: object
+            properties:
+              note:
+                type: string
+              category:
+                type: string
+      responses:
+        '200':
+          description: Transaction updated successfully (note and/or category)
+        '404':
+          description: Transaction not found
+
+  /accounts/{accountId}/transactions/{transactionId}/note:
+    delete:
+      tags:
+        - Transaction Module
+      summary: Delete the note from a transaction
+      description: Remove the note associated with a specific transaction.
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          description: The unique identifier of the account
+          type: string
+        - name: transactionId
+          in: path
+          required: true
+          description: The unique identifier of the transaction
+          type: string
+      responses:
+        '200':
+          description: Note deleted successfully
+        '404':
+          description: Note or transaction not found
+
+  /accounts/{accountId}/transactions/types:
+    get:
+      tags:
+        - Transaction Module
+      summary: Get available transaction types
+      description: Retrieve the list of available transaction types (e.g., deposit, withdrawal, transfer).
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          description: The unique identifier of the account
+          type: string
+      responses:
+        '200':
+          description: A list of transaction types
+          schema:
+            type: array
+            items:
+              type: string
+        '500':
+          description: Internal server error
+
+definitions:
+  User:
+    properties:
+      email:
+        type: string
+        description: user email
+      password:
+        type: string
+        description: user password
+      firstName:
+        type: string
+        description: user first name
+      lastName:
+        type: string
+        description: user last name
+      userName:
+        type: string
+        description: user public name
+
+  Login:
+    properties:
+      email:
+        type: string
+        description: user email
+      password:
+        type: string
+        description: user password
+
+  ApiResponse:
+    type: object
+    properties:
+      status:
+        type: integer
+      message:
+        type: string
+      body:
+        type: object
+        properties:
+          id:
+            type: string
+          email:
+            type: string
+
+  LoginResponse:
+    type: object
+    properties:
+      token:
+        type: string
+
+  UserProfile:
+    type: object
+    properties:
+      userName:
+        type: string
+
+  Transaction:
+    type: object
+    properties:
+      id:
+        type: string
+        description: Unique ID of the transaction
+      date:
+        type: string
+        format: date-time
+        description: Date of the transaction
+      amount:
+        type: number
+        description: Amount of the transaction
+      description:
+        type: string
+        description: Description of the transaction
+      category:
+        type: string
+        description: Category of the transaction
+      note:
+        type: string
+        description: Optional note for the transaction
+      type:
+        type: string
+        description: Type of transaction (e.g., deposit, withdrawal)
+
+securityDefinitions:
+  Bearer:
+    type: apiKey
+    name: Authorization
+    in: header
